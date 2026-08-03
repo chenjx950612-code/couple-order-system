@@ -1,16 +1,20 @@
-# 飞牛 FnOS 部署配置（Cloudflare Tunnel 方案，无需公网 IP / 路由器端口映射）
+# 飞牛 FnOS 部署配置（官方 Node 镜像 + 挂载源码，免构建；配合 Lucky 做 DDNS+SSL+反代）
 # 用法：
-#   1) 在飞牛文件管理里建一个项目文件夹（如 /vol1/1000/docker/couple-order），把本仓库文件放进去
-#   2) FnOS 的 Docker 应用 → 创建 docker-compose 项目 → 选该文件夹 → 粘贴/识别此文件 → 构建并启动
-#   3) 数据（data/）与菜品图（public/uploads/）会持久化在 NAS 硬盘，容器重建也不丢
-#   4) 外网访问见下方「Cloudflare Tunnel」说明（推荐），或临时用 http://飞牛IP:3000 局域网访问
+#   1) 在飞牛文件管理建项目文件夹（如 /vol1/1000/docker/couple-order-system），把本仓库文件放进去
+#      （server.js / package.json / public/ / docker-compose.yml 都要有）
+#   2) 飞牛 Docker 应用 → 创建 compose 项目 → 选该文件夹（或 SSH 进文件夹后 docker compose up -d）
+#   3) 数据（data/）与菜品图（public/uploads/）持久化在 NAS 硬盘，容器重建不丢
+#   4) 外网访问：路由器 80/443 映射给飞牛 + Lucky（DDNS+SSL+反代 fanqie.域名.com:443 → 127.0.0.1:3000）
 services:
   app:
-    build: .
+    image: node:22-alpine
     container_name: couple-order
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    working_dir: /app
     volumes:
+      - ./:/app
       - ./data:/app/data
       - ./public/uploads:/app/public/uploads
+    ports:
+      - "3000:3000"
+    command: ["node", "server.js"]
