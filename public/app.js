@@ -567,6 +567,11 @@ function bindReviewUI() {
       });
     });
   });
+  // 移动端稳妥做法：textarea 输入实时同步到 draft，避免保存时 DOM 取值不可靠
+  $$('#overview-list .review-text').forEach((ta) => ta.addEventListener('input', () => {
+    const rid = ta.dataset.rid;
+    if (reviewDraft[rid]) reviewDraft[rid].text = ta.value;
+  }));
   $$('#overview-list .review-img-btn').forEach((b) => b.addEventListener('click', async () => {
     const rid = b.dataset.rid;
     const f = await pickImage();
@@ -589,7 +594,10 @@ function bindReviewUI() {
   $$('#overview-list .review-save').forEach((b) => b.addEventListener('click', async () => {
     const rid = b.dataset.rid;
     const d = reviewDraft[rid] || {};
-    const body = { by: nick, text: ($(`.review-text[data-rid="${rid}"]`).value || '').trim(), rating: d.stars || 0 };
+    // 移动端/某些浏览器下 blur 前点按钮可能没触发 input，兜底再读一次 DOM
+    const ta = $(`.review-text[data-rid="${rid}"]`);
+    if (ta && reviewDraft[rid]) reviewDraft[rid].text = ta.value;
+    const body = { by: nick, text: (d.text || '').trim(), rating: d.stars || 0 };
     if (d.changed) body.image = d.removed ? '' : (d.image || '');
     try {
       const updated = await api(`/api/rooms/${roomCode}/reservations/${rid}/review`, 'POST', body);
