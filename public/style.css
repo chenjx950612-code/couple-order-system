@@ -327,6 +327,8 @@ textarea { resize: vertical; min-height: 64px; }
 .of-btn.on { border-color: var(--pink); color: var(--pink-deep); background: rgba(255,107,129,.08); font-weight: 600; }
 
 /* 点评定位高亮 */
+.card-actions { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); text-align: right; }
+.card-actions .resv-del { color: #e05a6b; }
 .resv-card.highlight { animation: highlightPulse 1.8s ease; box-shadow: 0 0 0 3px rgba(255,107,129,.35); }
 @keyframes highlightPulse {
   0% { box-shadow: 0 0 0 3px rgba(255,107,129,.45); }

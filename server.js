@@ -338,6 +338,21 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, r);
       }
 
+      // 删除点菜记录（含其点评与图片）
+      const resvDel = p.match(/^\/api\/rooms\/([A-Z0-9]{4})\/reservations\/(\w+)$/);
+      if (resvDel && req.method === 'DELETE') {
+        const code = resvDel[1];
+        const db = readDb();
+        const room = db.rooms[code];
+        if (!room) return sendJson(res, 404, { error: '房间不存在' });
+        const r = room.reservations.find((x) => x.id === resvDel[2]);
+        if (!r) return sendJson(res, 404, { error: '点菜记录不存在' });
+        if (r.review && r.review.image) removeImageFile(r.review.image);
+        room.reservations = room.reservations.filter((x) => x.id !== resvDel[2]);
+        writeDb(db);
+        return sendJson(res, 200, { ok: true });
+      }
+
       const rateMatch = p.match(/^\/api\/rooms\/([A-Z0-9]{4})\/ratings$/);
       if (rateMatch && req.method === 'POST') {
         const code = rateMatch[1];

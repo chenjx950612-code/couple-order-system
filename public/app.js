@@ -510,6 +510,9 @@ function reservationCard(r) {
     <div style="margin-top:8px">${dishes}</div>
     ${r.note ? `<div class="meta" style="margin-top:8px">💬 ${esc(r.note)}</div>` : ''}
     <div class="review-area">${reviewHtml}</div>
+    <div class="card-actions">
+      <button type="button" class="text-btn resv-del" data-rid="${esc(r.id)}">🗑 删除这顿</button>
+    </div>
   </div>`;
 }
 function bindReviewUI() {
@@ -538,6 +541,19 @@ function bindReviewUI() {
     editingReviews.delete(rid);
     delete reviewDraft[rid];
     renderOverview();
+  }));
+  $$('#overview-list .resv-del').forEach((b) => b.addEventListener('click', async () => {
+    const rid = b.dataset.rid;
+    if (!confirm('确定删除这顿点菜记录吗？删除后不可恢复（含点评）')) return;
+    try {
+      await api(`/api/rooms/${roomCode}/reservations/${rid}`, 'DELETE');
+      const idx = room.reservations.findIndex((x) => x.id === rid);
+      if (idx >= 0) room.reservations.splice(idx, 1);
+      editingReviews.delete(rid);
+      delete reviewDraft[rid];
+      renderOverview();
+      toast('已删除 🗑');
+    } catch (e) { toast('删除失败'); }
   }));
   $$('#overview-list .review-stars').forEach((st) => {
     const rid = st.dataset.rid;
@@ -576,10 +592,13 @@ function bindReviewUI() {
     const body = { by: nick, text: ($(`.review-text[data-rid="${rid}"]`).value || '').trim(), rating: d.stars || 0 };
     if (d.changed) body.image = d.removed ? '' : (d.image || '');
     try {
-      await api(`/api/rooms/${roomCode}/reservations/${rid}/review`, 'POST', body);
+      const updated = await api(`/api/rooms/${roomCode}/reservations/${rid}/review`, 'POST', body);
       editingReviews.delete(rid);
       delete reviewDraft[rid];
-      await reload();
+      // 用服务端返回的最新记录直接覆盖本地，避免全量 reload 的竞态导致不刷新
+      const idx = room.reservations.findIndex((x) => x.id === rid);
+      if (idx >= 0) room.reservations[idx] = updated;
+      else room.reservations.push(updated);
       renderOverview();
       toast('点评已保存 🍽️');
     } catch (e) { toast('保存失败'); }
