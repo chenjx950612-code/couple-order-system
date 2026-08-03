@@ -1,0 +1,16 @@
+# 情侣点菜系统 · 部署到 Render（免费）
+# 1) 把本仓库推到 GitHub
+# 2) 打开 https://render.com -> New -> Web Service -> 关联仓库
+# 3) 以下配置会被自动读取，直接部署即可
+# 部署后获得一个公开网址，两人用房间码即可共享使用
+services:
+  - type: web
+    name: couple-order-system
+    runtime: node
+    plan: free
+    buildCommand: "echo skip-build"
+    startCommand: "node server.js"
+    envVars:
+      - key: PORT
+        value: 10000
+    healthCheckPath: /

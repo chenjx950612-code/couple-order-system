@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>我们的点菜空间 · 情侣点菜系统</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- 登录/加入屏 -->
+    <section id="auth-screen" class="screen">
+      <div class="auth-card">
+        <div class="logo">🍽️💕</div>
+        <h1>我们的点菜空间</h1>
+        <p class="subtitle">约饭、点菜、评分，两个人一起</p>
+
+        <div class="tabs-switch">
+          <button class="tab-switch active" data-mode="join">加入已有空间</button>
+          <button class="tab-switch" data-mode="create">创建新空间</button>
+        </div>
+
+        <form id="auth-form">
+          <label class="field">
+            <span>你的昵称</span>
+            <input id="nick" type="text" placeholder="例如：小宝 / 宝贝" maxlength="20" required />
+          </label>
+
+          <div id="create-fields">
+            <label class="field">
+              <span>空间名称</span>
+              <input id="room-name" type="text" placeholder="例如：周末食堂" maxlength="40" />
+            </label>
+          </div>
+
+          <div id="join-fields" style="display:none">
+            <label class="field">
+              <span>房间码</span>
+              <input id="room-code" type="text" placeholder="4 位字母数字" maxlength="4" style="text-transform:uppercase" />
+            </label>
+          </div>
+
+          <button type="submit" class="primary-btn" id="auth-submit">进入空间</button>
+        </form>
+        <p class="hint" id="auth-hint"></p>
+      </div>
+    </section>
+
+    <!-- 主应用屏 -->
+    <section id="main-screen" class="screen" style="display:none">
+      <header class="topbar">
+        <div>
+          <div class="room-name" id="top-room-name">空间</div>
+          <div class="room-code" id="top-room-code">码：----</div>
+        </div>
+        <button class="icon-btn" id="leave-btn" title="退出">退出</button>
+      </header>
+
+      <nav class="tabbar">
+        <button class="tab active" data-tab="dishes">📖<span>菜名库</span></button>
+        <button class="tab" data-tab="reserve">📅<span>预约</span></button>
+        <button class="tab" data-tab="rate">⭐<span>评分</span></button>
+        <button class="tab" data-tab="overview">📊<span>概览</span></button>
+      </nav>
+
+      <main class="content">
+        <!-- 菜名库 -->
+        <div class="tab-panel active" id="panel-dishes">
+          <form id="dish-form" class="inline-form">
+            <input id="dish-name" type="text" placeholder="加一道菜，例如：番茄牛腩" maxlength="60" required />
+            <input id="dish-cat" type="text" placeholder="分类(可选)" maxlength="20" />
+            <input id="dish-rest" type="text" placeholder="餐厅(可选)" maxlength="40" />
+            <button type="submit" class="primary-btn sm">添加</button>
+          </form>
+          <div id="dish-list" class="card-list"></div>
+        </div>
+
+        <!-- 预约 -->
+        <div class="tab-panel" id="panel-reserve">
+          <form id="resv-form" class="card-form">
+            <label class="field"><span>主题</span><input id="resv-title" type="text" placeholder="例如：周六约会午餐" maxlength="60" /></label>
+            <label class="field"><span>餐厅</span><input id="resv-rest" type="text" placeholder="餐厅名称" maxlength="60" /></label>
+            <label class="field"><span>时间</span><input id="resv-time" type="datetime-local" /></label>
+            <label class="field"><span>想吃的菜（可多选）</span></label>
+            <div id="resv-dishes" class="check-list"></div>
+            <label class="field"><span>备注</span><textarea id="resv-note" placeholder="小心情、注意项…" maxlength="300"></textarea></label>
+            <button type="submit" class="primary-btn">创建预约</button>
+          </form>
+          <div id="resv-list" class="card-list"></div>
+        </div>
+
+        <!-- 评分 -->
+        <div class="tab-panel" id="panel-rate">
+          <div id="rate-list" class="card-list"></div>
+        </div>
+
+        <!-- 概览 -->
+        <div class="tab-panel" id="panel-overview">
+          <div class="stats" id="stats"></div>
+          <div id="overview-list"></div>
+        </div>
+      </main>
+    </section>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

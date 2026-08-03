@@ -1,0 +1,13 @@
+{
+  "name": "couple-order-system",
+  "version": "1.0.0",
+  "description": "情侣点菜系统：预约点菜、上传菜名、评分，联网共享",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "private": true
+}
