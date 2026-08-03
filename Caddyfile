@@ -1,0 +1,5 @@
+# 把第一行改成你自己的域名（域名需已解析到本服务器的公网 IP）
+# Caddy 会自动申请并续期 Let's Encrypt 免费证书，并把 http 自动跳转到 https
+your-domain.example.com {
+    reverse_proxy app:3000
+}

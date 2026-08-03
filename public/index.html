@@ -13,7 +13,7 @@
       <div class="auth-card">
         <div class="logo">🍽️💕</div>
         <h1>我们的点菜空间</h1>
-        <p class="subtitle">约饭、点菜、评分，两个人一起</p>
+        <p class="subtitle">约饭、点菜、点评，两个人一起</p>
 
         <div class="tabs-switch">
           <button class="tab-switch active" data-mode="join">加入已有空间</button>
@@ -58,8 +58,8 @@
 
       <nav class="tabbar">
         <button class="tab active" data-tab="dishes">📖<span>菜名库</span></button>
-        <button class="tab" data-tab="reserve">📅<span>预约</span></button>
-        <button class="tab" data-tab="rate">⭐<span>评分</span></button>
+        <button class="tab" data-tab="menu">🍽️<span>菜单</span></button>
+        <button class="tab" data-tab="reserve">📝<span>点菜</span></button>
         <button class="tab" data-tab="overview">📊<span>概览</span></button>
       </nav>
 
@@ -67,36 +67,88 @@
         <!-- 菜名库 -->
         <div class="tab-panel active" id="panel-dishes">
           <form id="dish-form" class="inline-form">
-            <input id="dish-name" type="text" placeholder="加一道菜，例如：番茄牛腩" maxlength="60" required />
-            <input id="dish-cat" type="text" placeholder="分类(可选)" maxlength="20" />
-            <input id="dish-rest" type="text" placeholder="餐厅(可选)" maxlength="40" />
-            <button type="submit" class="primary-btn sm">添加</button>
+            <input id="dish-name" type="text" placeholder="加一道菜，例如：番茄炒蛋" maxlength="60" required />
+            <div class="add-row">
+              <select id="dish-cat">
+                <option value="荤菜">荤菜</option>
+                <option value="蔬菜">蔬菜</option>
+                <option value="主食">主食</option>
+                <option value="汤">汤</option>
+                <option value="甜点">甜点</option>
+                <option value="其他">其他</option>
+              </select>
+              <button type="button" class="img-pick" id="dish-img-btn">📷 图片</button>
+              <button type="submit" class="primary-btn sm">添加</button>
+            </div>
+            <img id="dish-preview" class="preview" alt="" hidden />
           </form>
-          <div id="dish-list" class="card-list"></div>
+
+          <div class="gallery-search">
+            <span class="search-icon">🔍</span>
+            <input id="dish-search" type="text" placeholder="搜索菜品" />
+          </div>
+          <div class="cat-tabs" id="dish-cat-tabs"></div>
+          <div id="dish-list" class="gallery-grid"></div>
         </div>
 
-        <!-- 预约 -->
+        <!-- 菜单列表 -->
+        <div class="tab-panel" id="panel-menu">
+          <div class="menu-head">
+            <h2 class="page-title">菜单</h2>
+            <p class="page-sub">今天吃什么？选好菜品，通知 Ta ~</p>
+          </div>
+          <div class="gallery-search">
+            <span class="search-icon">🔍</span>
+            <input id="menu-search" type="text" placeholder="搜索菜品" />
+          </div>
+          <div class="cat-tabs" id="menu-cat-tabs"></div>
+          <div id="menu-list" class="gallery-grid"></div>
+          <div class="menu-bar">
+            <span id="menu-count">请选择菜品</span>
+            <button id="menu-order-btn" class="primary-btn sm" disabled>确认点菜</button>
+          </div>
+        </div>
+
+        <!-- 点菜 -->
         <div class="tab-panel" id="panel-reserve">
           <form id="resv-form" class="card-form">
-            <label class="field"><span>主题</span><input id="resv-title" type="text" placeholder="例如：周六约会午餐" maxlength="60" /></label>
-            <label class="field"><span>餐厅</span><input id="resv-rest" type="text" placeholder="餐厅名称" maxlength="60" /></label>
-            <label class="field"><span>时间</span><input id="resv-time" type="datetime-local" /></label>
+            <label class="field"><span>日期</span><input id="resv-date" type="date" /></label>
+            <label class="field"><span>餐次</span>
+              <div class="meal-pick" id="resv-meal">
+                <button type="button" class="meal-opt" data-meal="早">早餐</button>
+                <button type="button" class="meal-opt" data-meal="中">午餐</button>
+                <button type="button" class="meal-opt" data-meal="晚">晚餐</button>
+              </div>
+            </label>
             <label class="field"><span>想吃的菜（可多选）</span></label>
-            <div id="resv-dishes" class="check-list"></div>
+            <div class="multi-select" id="resv-dishes">
+              <button type="button" class="multi-trigger" id="resv-dish-trigger">请选择菜品</button>
+              <div class="multi-pop" id="resv-dish-pop">
+                <div class="multi-pop-head">
+                  <span>选择菜品</span>
+                  <button type="button" class="multi-close" id="resv-dish-close">✕</button>
+                </div>
+                <div class="multi-search">
+                  <span class="search-icon">🔍</span>
+                  <input id="resv-dish-search" type="text" placeholder="搜索菜品" />
+                </div>
+                <div class="multi-body" id="resv-dish-body"></div>
+                <div class="multi-foot">
+                  <span id="resv-dish-count">已选 0 道</span>
+                  <button type="button" class="primary-btn sm" id="resv-dish-ok">确定</button>
+                </div>
+              </div>
+            </div>
             <label class="field"><span>备注</span><textarea id="resv-note" placeholder="小心情、注意项…" maxlength="300"></textarea></label>
-            <button type="submit" class="primary-btn">创建预约</button>
+            <button type="submit" class="primary-btn">创建点菜</button>
           </form>
           <div id="resv-list" class="card-list"></div>
-        </div>
-
-        <!-- 评分 -->
-        <div class="tab-panel" id="panel-rate">
-          <div id="rate-list" class="card-list"></div>
         </div>
 
         <!-- 概览 -->
         <div class="tab-panel" id="panel-overview">
           <div class="stats" id="stats"></div>
+          <div id="overview-filter"></div>
           <div id="overview-list"></div>
         </div>
       </main>

@@ -84,9 +84,12 @@ textarea { resize: vertical; min-height: 64px; }
 .tab-panel.active { display: block; animation: fade .25s ease; }
 @keyframes fade { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform:none;} }
 
-.inline-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; background: var(--card); padding: 12px; border-radius: 16px; box-shadow: 0 6px 16px rgba(255,107,129,.1); }
-.inline-form #dish-name { grid-column: 1 / -1; }
-.inline-form .primary-btn { grid-column: 1 / -1; }
+.inline-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; background: var(--card); padding: 12px; border-radius: 16px; box-shadow: 0 6px 16px rgba(255,107,129,.1); }
+.inline-form select { flex: 1; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 13px; font-size: 15px; background: #fff; color: var(--text); outline: none; }
+.inline-form select:focus { border-color: var(--pink); }
+.add-row { display: flex; gap: 8px; align-items: center; }
+.img-pick { border: none; background: rgba(255,107,129,.12); color: var(--pink-deep); padding: 0 14px; border-radius: 13px; font-size: 14px; cursor: pointer; white-space: nowrap; align-self: stretch; }
+.preview { width: 100%; max-height: 160px; object-fit: cover; border-radius: 14px; margin-top: 2px; }
 
 .card-form { background: var(--card); padding: 16px; border-radius: 18px; box-shadow: 0 6px 16px rgba(255,107,129,.1); margin-bottom: 18px; }
 .check-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; max-height: 160px; overflow-y: auto; }
@@ -100,6 +103,15 @@ textarea { resize: vertical; min-height: 64px; }
 .card .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
 .card .by { font-size: 11px; color: var(--pink-deep); }
 .del { border: none; background: rgba(255,77,109,.1); color: var(--pink-deep); width: 30px; height: 30px; border-radius: 10px; cursor: pointer; font-size: 15px; }
+
+/* 菜品图片卡片 */
+.dish-card { display: flex; align-items: center; gap: 12px; }
+.dish-card .info { flex: 1; min-width: 0; }
+.thumb { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; flex-shrink: 0; background: var(--bg); }
+.thumb.none { display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.ops { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-shrink: 0; }
+.img-btn { border: none; background: rgba(255,167,81,.16); color: #d98324; width: 30px; height: 30px; border-radius: 10px; cursor: pointer; font-size: 14px; }
+.img-remove { border: none; background: rgba(255,77,109,.1); color: var(--pink-deep); width: 30px; height: 30px; border-radius: 10px; cursor: pointer; font-size: 13px; }
 
 .stars { font-size: 20px; letter-spacing: 2px; cursor: pointer; user-select: none; }
 .stars .s { color: #e0d5d6; }
@@ -121,6 +133,16 @@ textarea { resize: vertical; min-height: 64px; }
 .status-planned { font-size: 11px; color: var(--pink-deep); border: 1px solid var(--line); padding: 2px 8px; border-radius: 10px; }
 .complete-btn { margin-top: 10px; border: none; background: rgba(46,204,113,.14); color: #1e9e57; padding: 8px 14px; border-radius: 12px; font-size: 13px; cursor: pointer; }
 
+/* 菜单列表分组 */
+.menu-intro { text-align: center; color: var(--muted); font-size: 13px; margin: 4px 0 14px; }
+.menu-cat { font-size: 15px; margin: 16px 4px 10px; color: var(--pink-deep); display: flex; align-items: center; gap: 8px; }
+.menu-count { font-size: 12px; color: var(--muted); background: var(--bg); border-radius: 10px; padding: 1px 8px; font-weight: 400; }
+
+/* 预约餐次选择 */
+.meal-pick { display: flex; gap: 8px; }
+.meal-opt { flex: 1; padding: 11px; border: 1.5px solid var(--line); border-radius: 13px; background: #fff; font-size: 14px; color: var(--muted); cursor: pointer; transition: all .15s; }
+.meal-opt.on { background: linear-gradient(135deg, var(--pink), var(--orange)); color: #fff; border-color: transparent; }
+
 /* toast */
 .toast {
   position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(20px);
@@ -128,3 +150,202 @@ textarea { resize: vertical; min-height: 64px; }
   opacity: 0; pointer-events: none; transition: all .25s; z-index: 99; max-width: 80%;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* 概览：预约记录 + 饭后点评 */
+.resv-card { align-items: stretch; }
+.review-area { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.text-btn { border: none; background: transparent; color: var(--pink-deep); font-size: 13px; cursor: pointer; padding: 4px 0; }
+.text-btn:hover { text-decoration: underline; }
+.review-form { display: flex; flex-direction: column; gap: 10px; }
+.review-text { width: 100%; min-height: 64px; margin-top: 4px; }
+.review-img-row { display: flex; align-items: center; gap: 10px; }
+.review-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; }
+.review-actions { display: flex; gap: 12px; align-items: center; }
+.review-actions .primary-btn.sm { width: auto; }
+.review-done { display: flex; flex-direction: column; gap: 6px; }
+.review-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 14px; margin-top: 4px; }
+
+/* ---------- 新 UI：搜索 / 分类标签 / 网格卡片 ---------- */
+.gallery-search {
+  position: relative; margin: 8px 2px 12px;
+}
+.gallery-search input {
+  width: 100%; padding: 12px 14px 12px 40px; border: 1.5px solid var(--line);
+  border-radius: 22px; font-size: 15px; background: #fff; outline: none;
+}
+.gallery-search input:focus { border-color: var(--pink); }
+.gallery-search .search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 16px; color: var(--muted);
+}
+
+.cat-tabs {
+  display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.cat-tabs::-webkit-scrollbar { display: none; }
+.cat-tab {
+  flex-shrink: 0; border: none; background: #fff; color: var(--text);
+  padding: 8px 14px; border-radius: 20px; font-size: 13px; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255,107,129,.1); display: flex; align-items: center; gap: 4px;
+}
+.cat-tab.active { background: linear-gradient(135deg, var(--pink), var(--orange)); color: #fff; }
+.cat-num { font-size: 11px; opacity: .85; background: rgba(0,0,0,.06); padding: 1px 6px; border-radius: 10px; }
+.cat-tab.active .cat-num { background: rgba(255,255,255,.25); }
+
+.gallery-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+}
+.g-card {
+  position: relative; background: var(--card); border-radius: 16px;
+  overflow: hidden; box-shadow: 0 6px 16px rgba(255,107,129,.1);
+  cursor: pointer; transition: transform .15s;
+}
+.g-card:active { transform: scale(.98); }
+.g-img {
+  width: 100%; aspect-ratio: 1 / 1; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+}
+.g-img img { width: 100%; height: 100%; object-fit: cover; }
+.g-placeholder { font-size: 42px; }
+.g-info { padding: 10px 12px 12px; }
+.g-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.g-rating { font-size: 11px; color: var(--star); margin-top: 4px; }
+
+.g-check {
+  position: absolute; top: 8px; right: 8px;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid #fff; background: rgba(255,255,255,.75);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: transparent;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+.g-check.on { background: var(--pink); border-color: var(--pink); color: #fff; }
+
+.g-manage {
+  position: absolute; top: 8px; left: 8px;
+  display: flex; gap: 6px;
+}
+.g-manage .img-btn, .g-manage .img-remove, .g-manage .del {
+  width: 28px; height: 28px; border-radius: 8px; border: none;
+  font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.g-manage .img-btn { background: rgba(255,255,255,.85); color: #d98324; }
+.g-manage .img-remove { background: rgba(255,255,255,.85); color: var(--pink-deep); }
+.g-manage .del { background: rgba(255,255,255,.85); color: var(--pink-deep); }
+
+/* 菜单页 */
+.menu-head { margin: 0 4px 10px; }
+.page-title { font-size: 22px; font-weight: 700; margin: 0; }
+.page-sub { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+.menu-bar {
+  position: sticky; bottom: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--card); border-radius: 18px 18px 0 0;
+  padding: 12px 16px; margin: 16px -12px -30px;
+  box-shadow: 0 -4px 18px rgba(0,0,0,.08);
+}
+.menu-bar #menu-count { font-size: 14px; color: var(--muted); }
+.menu-bar .primary-btn.sm { width: auto; padding: 11px 22px; }
+.menu-bar .primary-btn.sm:disabled { opacity: .5; cursor: not-allowed; }
+
+/* 多选弹层（预约选菜） */
+.multi-select { position: relative; }
+.multi-trigger {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--line);
+  border-radius: 13px; background: #fff; font-size: 15px; color: var(--text);
+  text-align: left; cursor: pointer;
+}
+.multi-pop {
+  display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,.45); z-index: 50; flex-direction: column; align-items: center; justify-content: flex-end;
+}
+.multi-pop.show { display: flex; }
+.multi-pop > .multi-pop-head,
+.multi-pop > .multi-search,
+.multi-pop > .multi-body,
+.multi-pop > .multi-foot {
+  width: 100%; max-width: 520px; background: #fff;
+}
+.multi-pop-head {
+  border-radius: 20px 20px 0 0; padding: 16px 16px 10px;
+  display: flex; justify-content: space-between; align-items: center; font-weight: 600;
+}
+.multi-close { border: none; background: transparent; font-size: 18px; color: var(--muted); cursor: pointer; }
+.multi-search { padding: 0 16px 10px; position: relative; }
+.multi-search input { width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid var(--line); border-radius: 18px; font-size: 14px; outline: none; }
+.multi-search input:focus { border-color: var(--pink); }
+.multi-search .search-icon { position: absolute; left: 26px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--muted); }
+.multi-body { flex: 1; max-height: 55vh; overflow-y: auto; padding: 0 16px 10px; }
+.multi-group h4 { font-size: 13px; color: var(--muted); margin: 12px 0 8px; font-weight: 500; }
+.multi-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 0; cursor: pointer;
+}
+.multi-item input { width: 18px; height: 18px; accent-color: var(--pink-deep); }
+.multi-name { font-size: 14px; display: flex; align-items: center; gap: 8px; flex: 1; }
+.multi-thumb { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; background: var(--bg); }
+.multi-thumb.none { display: inline-flex; align-items: center; justify-content: center; font-size: 18px; width: 32px; height: 32px; }
+.multi-foot {
+  padding: 12px 16px 20px; display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--line);
+}
+.multi-foot #resv-dish-count { font-size: 14px; color: var(--muted); }
+.multi-foot .primary-btn.sm { width: auto; }
+
+/* 小屏适配 */
+@media (max-width: 360px) {
+  .gallery-grid { gap: 8px; }
+  .g-title { font-size: 14px; }
+}
+
+/* 日历图标 */
+.cal-icon { width: 34px; height: 40px; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+.cal-meta { display: flex; align-items: center; gap: 8px; }
+
+/* 概览日期筛选 */
+.overview-filter {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px 4px 14px; padding: 10px 12px;
+  background: var(--card); border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(255,107,129,.08);
+}
+.overview-filter input[type="date"] {
+  flex: 1; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 10px; font-size: 14px; color: var(--text); background: #fff; outline: none;
+}
+.overview-filter input[type="date"]:focus { border-color: var(--pink); }
+.overview-filter .overview-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.overview-filter .text-btn { padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+.overview-filter .of-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+/* 点评状态筛选 */
+.overview-subfilter { display: flex; gap: 8px; margin: 0 4px 14px; }
+.of-btn {
+  flex: 1; padding: 8px 0; border: 1.5px solid var(--line); background: #fff;
+  border-radius: 12px; font-size: 13px; color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.of-btn.on { border-color: var(--pink); color: var(--pink-deep); background: rgba(255,107,129,.08); font-weight: 600; }
+
+/* 点评定位高亮 */
+.resv-card.highlight { animation: highlightPulse 1.8s ease; box-shadow: 0 0 0 3px rgba(255,107,129,.35); }
+@keyframes highlightPulse {
+  0% { box-shadow: 0 0 0 3px rgba(255,107,129,.45); }
+  50% { box-shadow: 0 0 0 6px rgba(255,107,129,.15); }
+  100% { box-shadow: 0 0 0 3px rgba(255,107,129,.45); }
+}
+
+/* 跨设备新点菜提示 */
+.order-notice {
+  position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 120; display: none;
+  background: linear-gradient(135deg, var(--pink), var(--orange));
+  color: #fff; font-size: 14px; font-weight: 600;
+  padding: 12px 18px; border-radius: 16px;
+  box-shadow: 0 10px 26px rgba(255,107,129,.4);
+  cursor: pointer; max-width: 92%; text-align: center;
+  animation: noticeIn .3s ease;
+}
+@keyframes noticeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
