@@ -1,26 +1,16 @@
+# 飞牛 FnOS 部署配置（Cloudflare Tunnel 方案，无需公网 IP / 路由器端口映射）
+# 用法：
+#   1) 在飞牛文件管理里建一个项目文件夹（如 /vol1/1000/docker/couple-order），把本仓库文件放进去
+#   2) FnOS 的 Docker 应用 → 创建 docker-compose 项目 → 选该文件夹 → 粘贴/识别此文件 → 构建并启动
+#   3) 数据（data/）与菜品图（public/uploads/）会持久化在 NAS 硬盘，容器重建也不丢
+#   4) 外网访问见下方「Cloudflare Tunnel」说明（推荐），或临时用 http://飞牛IP:3000 局域网访问
 services:
   app:
     build: .
+    container_name: couple-order
     restart: unless-stopped
+    ports:
+      - "3000:3000"
     volumes:
       - ./data:/app/data
       - ./public/uploads:/app/public/uploads
-    expose:
-      - "3000"
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - app
-
-volumes:
-  caddy_data:
-  caddy_config:
