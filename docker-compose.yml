@@ -5,16 +5,16 @@
 #   2) 飞牛 Docker 应用 → 创建 compose 项目 → 选该文件夹（或 SSH 进文件夹后 docker compose up -d）
 #   3) 数据（data/）与菜品图（public/uploads/）持久化在 NAS 硬盘，容器重建不丢
 #   4) 外网访问：路由器 80/443 映射给飞牛 + Lucky（DDNS+SSL+反代 fanqie.域名.com:443 → 127.0.0.1:3000）
+# 注：这里宿主机端口用 5201（原 3000 被 NAS 其他容器占用），访问 http://飞牛IP:5201
 services:
   app:
     image: node:22-alpine
     container_name: couple-order
     restart: unless-stopped
-    working_dir: /app
     volumes:
       - ./:/app
       - ./data:/app/data
       - ./public/uploads:/app/public/uploads
     ports:
-      - "3000:3000"
-    command: ["node", "server.js"]
+      - "5201:3000"
+    command: ["node", "/app/server.js"]
