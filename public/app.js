@@ -478,7 +478,17 @@ function reservationCard(r) {
   const dishes = r.dishes.length ? r.dishes.map((d) => `<span class="tag">${esc(d)}</span>`).join(' ') : '<span class="meta">未选菜</span>';
   let reviewHtml;
   if (editingReviews.has(r.id)) {
-    const d = reviewDraft[r.id] || { stars: (r.review && r.review.rating) || 0, text: (r.review && r.review.text) || '', image: (r.review && r.review.image) || null, changed: false, removed: false };
+    // 保证 draft 始终存在且是最新数据，避免移动端状态丢失
+    if (!reviewDraft[r.id]) {
+      reviewDraft[r.id] = {
+        stars: (r.review && r.review.rating) || 0,
+        text: (r.review && r.review.text) || '',
+        image: (r.review && r.review.image) || null,
+        changed: false,
+        removed: false,
+      };
+    }
+    const d = reviewDraft[r.id];
     reviewHtml = `<div class="review-form">
       <div class="field"><span>这顿饭打几分？</span><div class="stars review-stars" data-rid="${r.id}">${starHtml(d.stars)}</div></div>
       <textarea class="review-text" data-rid="${r.id}" placeholder="写下这顿饭的感受…" maxlength="300">${esc(d.text)}</textarea>
@@ -559,12 +569,15 @@ function bindReviewUI() {
     const rid = st.dataset.rid;
     const spans = $$('span', st);
     spans.forEach((s, i) => {
-      s.addEventListener('mouseenter', () => paint(st, i + 1));
-      s.addEventListener('mouseleave', () => paint(st, reviewDraft[rid] ? reviewDraft[rid].stars : 0));
-      s.addEventListener('click', () => {
+      const set = () => {
+        if (!reviewDraft[rid]) reviewDraft[rid] = { stars: 0, text: '', image: null, changed: false, removed: false };
         reviewDraft[rid].stars = i + 1;
         paint(st, i + 1);
-      });
+      };
+      s.addEventListener('mouseenter', () => paint(st, i + 1));
+      s.addEventListener('mouseleave', () => paint(st, reviewDraft[rid] ? reviewDraft[rid].stars : 0));
+      s.addEventListener('click', set);
+      s.addEventListener('touchend', (e) => { e.preventDefault(); set(); });
     });
   });
   // 移动端稳妥做法：textarea 输入实时同步到 draft，避免保存时 DOM 取值不可靠
@@ -594,10 +607,14 @@ function bindReviewUI() {
   $$('#overview-list .review-save').forEach((b) => b.addEventListener('click', async () => {
     const rid = b.dataset.rid;
     const d = reviewDraft[rid] || {};
-    // 移动端/某些浏览器下 blur 前点按钮可能没触发 input，兜底再读一次 DOM
+    // 移动端/微信浏览器下，draft 可能未同步星星状态，直接从 DOM 兜底读取
+    const starsEl = $(`.review-stars[data-rid="${rid}"]`);
+    const domStars = starsEl ? $$('span.on', starsEl).length : 0;
+    const rating = Math.max(d.stars || 0, domStars);
+    // 文字也兜底再读一次 DOM
     const ta = $(`.review-text[data-rid="${rid}"]`);
     if (ta && reviewDraft[rid]) reviewDraft[rid].text = ta.value;
-    const body = { by: nick, text: (d.text || '').trim(), rating: d.stars || 0 };
+    const body = { by: nick, text: (d.text || '').trim(), rating };
     if (d.changed) body.image = d.removed ? '' : (d.image || '');
     try {
       const updated = await api(`/api/rooms/${roomCode}/reservations/${rid}/review`, 'POST', body);
