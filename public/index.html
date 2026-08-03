@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>我们的点菜空间 · 情侣点菜系统</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <meta name="theme-color" content="#ff6b81" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="情侣点菜" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
@@ -51,9 +58,10 @@
       <header class="topbar">
         <div>
           <div class="room-name" id="top-room-name">空间</div>
-          <div class="room-code" id="top-room-code">码：----</div>
-        </div>
-        <button class="icon-btn" id="leave-btn" title="退出">退出</button>
+        <div class="room-code" id="top-room-code">码：----</div>
+      </div>
+      <button class="icon-btn" id="admin-btn" title="系统管理">⚙</button>
+      <button class="icon-btn" id="leave-btn" title="退出">退出</button>
       </header>
 
       <nav class="tabbar">
@@ -156,6 +164,37 @@
   </div>
 
   <div id="toast" class="toast"></div>
+
+  <!-- 系统管理弹层 -->
+  <div id="admin-modal" class="modal hidden">
+    <div class="modal-mask" id="admin-mask"></div>
+    <div class="modal-card">
+      <div class="modal-title">⚙ 系统管理</div>
+      <div class="modal-row">
+        <span class="field-label">管理口令</span>
+        <input id="admin-pass" type="password" placeholder="输入管理口令" />
+      </div>
+      <div class="admin-version" id="admin-version"></div>
+      <button class="primary-btn" id="admin-update">检查并更新</button>
+
+      <div class="admin-divider"></div>
+
+      <div class="field-label">APP 图标（用于“添加到主屏幕”）</div>
+      <div class="admin-icon-row">
+        <img id="admin-icon-prev" class="admin-icon-prev" src="/icon.png?t=0" alt="当前图标" />
+        <div class="admin-icon-actions">
+          <input id="icon-file" type="file" accept="image/*" hidden />
+          <button class="text-btn" id="icon-pick">选择图片</button>
+          <button class="primary-btn sm" id="admin-icon">上传图标</button>
+        </div>
+      </div>
+      <div class="admin-tip">提示：上传后，在手机上“取消”旧的添加到主屏，再重新“添加到主屏幕”即可生效。</div>
+
+      <div id="admin-msg" class="admin-msg"></div>
+      <button class="text-btn" id="admin-close">关闭</button>
+    </div>
+  </div>
+
   <script src="/app.js"></script>
 </body>
 </html>

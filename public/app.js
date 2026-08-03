@@ -643,4 +643,73 @@ function showOrderNotice(d, count) {
   bar._t = setTimeout(() => { bar.style.display = 'none'; }, 12000);
 }
 
+// ---------------- 系统管理（更新 + APP 图标） ----------------
+function openAdmin() {
+  $('#admin-modal').classList.remove('hidden');
+  $('#admin-msg').textContent = '';
+  api('/api/version').then((v) => {
+    const short = (v.commit && v.commit !== 'unknown') ? v.commit.slice(0, 8) : '未知';
+    $('#admin-version').textContent = `当前版本：${short}（${new Date(v.time).toLocaleString('zh-CN')}）`;
+  }).catch(() => { $('#admin-version').textContent = '版本信息获取失败'; });
+}
+function closeAdmin() { $('#admin-modal').classList.add('hidden'); }
+
+$('#admin-btn').addEventListener('click', openAdmin);
+$('#admin-close').addEventListener('click', closeAdmin);
+$('#admin-mask').addEventListener('click', closeAdmin);
+
+let pendingIcon = null;
+$('#icon-pick').addEventListener('click', () => $('#icon-file').click());
+$('#icon-file').addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    pendingIcon = await fileToBase64(f);
+    $('#admin-icon-prev').src = pendingIcon;
+    $('#admin-msg').textContent = '已选择图片，点击“上传图标”生效';
+  } catch (err) { toast('图片读取失败'); }
+});
+$('#admin-icon').addEventListener('click', async () => {
+  const pass = $('#admin-pass').value;
+  if (!pass) return toast('请先输入管理口令');
+  if (!pendingIcon) return toast('请先选择图片');
+  try {
+    await api('/api/admin/icon', 'POST', { password: pass, image: pendingIcon });
+    $('#admin-msg').textContent = '图标已更新 ✅';
+    $('#admin-icon-prev').src = '/icon.png?t=' + Date.now();
+    toast('图标已更新 🎨');
+  } catch (err) { $('#admin-msg').textContent = err.message; toast(err.message); }
+});
+
+let updating = false;
+$('#admin-update').addEventListener('click', async () => {
+  if (updating) return;
+  const pass = $('#admin-pass').value;
+  if (!pass) return toast('请先输入管理口令');
+  updating = true;
+  $('#admin-update').disabled = true;
+  $('#admin-msg').textContent = '正在检查更新…';
+  try {
+    const r = await api('/api/admin/update', 'POST', { password: pass });
+    if (r.updated) {
+      $('#admin-msg').textContent = '已拉取最新代码，系统正在重启…';
+      const waitBack = setInterval(async () => {
+        try {
+          await api('/api/version');
+          clearInterval(waitBack);
+          location.reload();
+        } catch (e) { /* 还在重启 */ }
+      }, 2000);
+    } else {
+      $('#admin-msg').textContent = '已经是最新版本 ✅';
+    }
+  } catch (err) {
+    $('#admin-msg').textContent = err.message;
+    toast(err.message);
+  } finally {
+    updating = false;
+    $('#admin-update').disabled = false;
+  }
+});
+
 initAuth();

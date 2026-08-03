@@ -6,6 +6,9 @@
 #   3) 数据（data/）与菜品图（public/uploads/）持久化在 NAS 硬盘，容器重建不丢
 #   4) 外网访问：路由器 80/443 映射给飞牛 + Lucky（DDNS+SSL+反代 fanqie.域名.com:443 → 127.0.0.1:3000）
 # 注：这里宿主机端口用 5201（原 3000 被 NAS 其他容器占用），访问 http://飞牛IP:5201
+# 一键更新功能依赖容器内 git（用于 git pull 拉最新代码）。下面 command 会在启动时
+# 自动确保 git 已安装（仅首次需联网，装好后写进容器层，之后秒启）。
+# 管理口令默认为 061204，可在环境变量覆盖：environment: - ADMIN_PASS=你的口令
 services:
   app:
     image: node:22-alpine
@@ -17,4 +20,4 @@ services:
       - ./public/uploads:/app/public/uploads
     ports:
       - "5201:3000"
-    command: ["node", "/app/server.js"]
+    command: ["/bin/sh", "-c", "command -v git >/dev/null 2>&1 || apk add --no-cache git; exec node /app/server.js"]

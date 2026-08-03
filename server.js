@@ -3,6 +3,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
@@ -11,6 +12,9 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const UPLOAD_DIR = path.join(PUBLIC_DIR, 'uploads');
 const MAX_IMG = 4 * 1024 * 1024; // 解码后最大 4MB
 const IMG_EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' };
+const ADMIN_PASS = process.env.ADMIN_PASS || '061204';
+const ICON_FILE = path.join(UPLOAD_DIR, 'app-icon.png');
+const DEFAULT_ICON = path.join(PUBLIC_DIR, 'default-icon.png');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -93,12 +97,95 @@ function sanitize(s, max) {
   return s.trim().slice(0, max || 200);
 }
 
+// 保存 APP 图标（用于“添加到主屏幕”），覆盖式写入 public/uploads/app-icon.png
+function saveIcon(dataUrl) {
+  const m = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/.exec(dataUrl || '');
+  if (!m) return false;
+  const ext = IMG_EXT[m[1]];
+  if (!ext) return false;
+  const buf = Buffer.from(m[2], 'base64');
+  if (buf.length > MAX_IMG) return false;
+  ensureUploads();
+  fs.writeFileSync(ICON_FILE, buf);
+  return true;
+}
+// 优先返回用户上传的图标，否则返回默认图标
+function serveIcon(res) {
+  const f = fs.existsSync(ICON_FILE) ? ICON_FILE : DEFAULT_ICON;
+  res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-cache' });
+  fs.createReadStream(f).pipe(res);
+}
+// 动态返回 PWA manifest（图标指向 /icon.png，可随上传更新）
+function serveManifest(res) {
+  const m = {
+    name: '我们的点菜空间',
+    short_name: '情侣点菜',
+    description: '约饭、点菜、点评，两个人一起',
+    start_url: '/',
+    scope: '/',
+    display: 'standalone',
+    background_color: '#fff5f6',
+    theme_color: '#ff6b81',
+    icons: [
+      { src: '/icon.png', sizes: 'any', type: 'image/png', purpose: 'any' },
+      { src: '/icon.png', sizes: 'any', type: 'image/png', purpose: 'maskable' }
+    ]
+  };
+  res.writeHead(200, { 'Content-Type': 'application/manifest+json; charset=utf-8' });
+  res.end(JSON.stringify(m));
+}
+// 读取当前版本信息（git commit）
+function gitVersion() {
+  try {
+    const commit = execSync('git rev-parse HEAD', { cwd: __dirname }).toString().trim();
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: __dirname }).toString().trim();
+    return { commit, branch };
+  } catch (e) {
+    return { commit: 'unknown', branch: 'unknown' };
+  }
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const p = url.pathname;
   try {
     // ---------------- API ----------------
     if (p.startsWith('/api/')) {
+      // 当前版本信息
+      if (p === '/api/version' && req.method === 'GET') {
+        const v = gitVersion();
+        return sendJson(res, 200, { ...v, time: new Date().toISOString() });
+      }
+
+      // 管理员：一键更新（git pull 后重启容器）
+      if (p === '/api/admin/update' && req.method === 'POST') {
+        const b = await readBody(req);
+        if (b.password !== ADMIN_PASS) return sendJson(res, 403, { error: '管理口令不正确' });
+        try {
+          execSync('git config --global --add safe.directory /app', { cwd: __dirname });
+          const out = execSync('git pull origin main', { cwd: __dirname, stdio: ['ignore', 'pipe', 'pipe'] }).toString();
+          const updated = !/Already up to date/i.test(out);
+          if (updated) {
+            sendJson(res, 200, { ok: true, updated: true, message: '已拉取最新代码，系统将在 2 秒后重启更新', output: out.slice(0, 600) });
+            setTimeout(() => process.exit(0), 2000); // 依赖 docker restart: unless-stopped 自动重启
+            return;
+          }
+          return sendJson(res, 200, { ok: true, updated: false, message: '已经是最新版本', output: out.slice(0, 600) });
+        } catch (e) {
+          const detail = e && e.stderr ? e.stderr.toString() : String(e && e.message || e);
+          return sendJson(res, 500, { error: '更新失败：' + detail.slice(0, 400) });
+        }
+      }
+
+      // 管理员：上传 APP 图标
+      if (p === '/api/admin/icon' && req.method === 'POST') {
+        const b = await readBody(req);
+        if (b.password !== ADMIN_PASS) return sendJson(res, 403, { error: '管理口令不正确' });
+        if (!b.image) return sendJson(res, 400, { error: '请先选择图片' });
+        if (!saveIcon(b.image)) return sendJson(res, 400, { error: '图片格式不支持或过大（≤4MB）' });
+        return sendJson(res, 200, { ok: true });
+      }
+
       // 创建房间
       if (p === '/api/rooms' && req.method === 'POST') {
         const b = await readBody(req);
@@ -277,6 +364,10 @@ const server = http.createServer(async (req, res) => {
 
       return sendJson(res, 404, { error: '接口不存在' });
     }
+
+    // ---------------- PWA：图标 & manifest（需在静态文件之前） ----------------
+    if (p === '/icon.png') return serveIcon(res);
+    if (p === '/manifest.webmanifest') return serveManifest(res);
 
     // ---------------- 静态文件 ----------------
     let filePath = path.join(PUBLIC_DIR, p === '/' ? 'index.html' : p);
