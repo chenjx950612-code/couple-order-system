@@ -159,6 +159,7 @@ textarea { resize: vertical; min-height: 64px; }
 .review-actions { display: flex; gap: 12px; align-items: center; }
 .review-actions .primary-btn.sm { width: auto; }
 .review-done { display: flex; flex-direction: column; gap: 6px; }
+.review-empty { padding: 14px 12px; text-align: center; color: #bbb; font-size: 13px; border: 1.5px dashed var(--line); border-radius: 12px; }
 .review-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 14px; margin-top: 4px; cursor: zoom-in; }
 .review-preview { cursor: zoom-in; }
 

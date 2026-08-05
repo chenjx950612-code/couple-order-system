@@ -498,6 +498,8 @@ function reservationCard(r) {
       ${rv.image ? `<img class="review-img" src="${esc(rv.image)}" alt="" />` : ''}
       <div class="meta">由 ${esc(rv.by || '神秘人')} 点评${rv.at ? ' · ' + fmtTime(rv.at) : ''}</div>
     </div>`;
+  } else {
+    reviewHtml = `<div class="review-empty">暂未点评</div>`;
   }
   // 卡片底部分两行：第一行 primary 按钮（写点评/编辑点评），第二行删除
   let primaryBtn = '';
