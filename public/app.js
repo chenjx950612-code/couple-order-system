@@ -724,4 +724,24 @@ $('#admin-update').addEventListener('click', async () => {
   }
 });
 
+// ---------------- 图片放大查看（lightbox） ----------------
+function openLightbox(src) {
+  const lb = $('#img-lightbox');
+  lb.querySelector('.lightbox-img').src = src;
+  lb.hidden = false;
+}
+function closeLightbox() {
+  const lb = $('#img-lightbox');
+  lb.hidden = true;
+  lb.querySelector('.lightbox-img').src = '';
+}
+$('#img-lightbox').querySelector('.lightbox-mask').addEventListener('click', closeLightbox);
+$('#img-lightbox').querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+// 点击任意点评/菜品图片放大查看（事件委托，兼容动态重渲染）
+document.addEventListener('click', (e) => {
+  const img = e.target.closest('.review-img, .review-preview, .g-img img, .dish-preview');
+  if (img && img.src) openLightbox(img.src);
+});
+
 initAuth();
