@@ -386,6 +386,9 @@ function renderReservations() {
 // ---------------- 工具 ----------------
 function paint(starsEl, n) {
   $$('span', starsEl).forEach((s, i) => s.classList.toggle('on', i < n));
+  starsEl.dataset.current = String(n);
+  const label = starsEl.parentElement && starsEl.parentElement.querySelector('.star-label');
+  if (label) label.textContent = n > 0 ? `已选 ${n} 星` : '点击星星评分';
 }
 
 // ---------------- 概览（预约记录 + 饭后点评） ----------------
@@ -490,7 +493,7 @@ function reservationCard(r) {
     }
     const d = reviewDraft[r.id];
     reviewHtml = `<div class="review-form">
-      <div class="field"><span>这顿饭打几分？</span><div class="stars review-stars" data-rid="${r.id}">${starHtml(d.stars)}</div></div>
+      <div class="field"><span>这顿饭打几分？</span><div class="stars review-stars" data-rid="${r.id}" data-current="${d.stars}">${starHtml(d.stars)}</div><span class="star-label" data-rid="${r.id}">${d.stars > 0 ? `已选 ${d.stars} 星` : '点击星星评分'}</span></div>
       <textarea class="review-text" data-rid="${r.id}" placeholder="写下这顿饭的感受…" maxlength="300">${esc(d.text)}</textarea>
       <div class="review-img-row">
         <button type="button" class="img-pick review-img-btn" data-rid="${r.id}">📷 图片</button>
@@ -504,8 +507,9 @@ function reservationCard(r) {
     </div>`;
   } else if (r.review) {
     const rv = r.review;
+    const rating = Number(rv.rating) || 0;
     reviewHtml = `<div class="review-done">
-      ${rv.rating ? `<div class="stars" style="pointer-events:none">${starHtml(rv.rating)}</div>` : ''}
+      ${rating > 0 ? `<div class="stars" style="pointer-events:none">${starHtml(rating)}</div>` : '<div class="stars" style="pointer-events:none;color:var(--muted);font-size:14px;">未评分</div>'}
       ${rv.text ? `<div class="meta">${esc(rv.text)}</div>` : ''}
       ${rv.image ? `<img class="review-img" src="${esc(rv.image)}" alt="" />` : ''}
       <div class="meta">由 ${esc(rv.by || '神秘人')} 点评${rv.at ? ' · ' + fmtTime(rv.at) : ''}</div>
@@ -567,17 +571,30 @@ function bindReviewUI() {
   }));
   $$('#overview-list .review-stars').forEach((st) => {
     const rid = st.dataset.rid;
+    // 容器级事件委托，移动端更稳；同时保留 span 级 hover 体验
+    st.addEventListener('click', (e) => {
+      const span = e.target.closest('span.s');
+      if (!span) return;
+      const idx = $$('span', st).indexOf(span);
+      if (idx < 0) return;
+      if (!reviewDraft[rid]) reviewDraft[rid] = { stars: 0, text: '', image: null, changed: false, removed: false };
+      reviewDraft[rid].stars = idx + 1;
+      paint(st, idx + 1);
+    });
+    st.addEventListener('touchend', (e) => {
+      const span = e.target.closest('span.s');
+      if (!span) return;
+      e.preventDefault();
+      const idx = $$('span', st).indexOf(span);
+      if (idx < 0) return;
+      if (!reviewDraft[rid]) reviewDraft[rid] = { stars: 0, text: '', image: null, changed: false, removed: false };
+      reviewDraft[rid].stars = idx + 1;
+      paint(st, idx + 1);
+    });
     const spans = $$('span', st);
     spans.forEach((s, i) => {
-      const set = () => {
-        if (!reviewDraft[rid]) reviewDraft[rid] = { stars: 0, text: '', image: null, changed: false, removed: false };
-        reviewDraft[rid].stars = i + 1;
-        paint(st, i + 1);
-      };
       s.addEventListener('mouseenter', () => paint(st, i + 1));
-      s.addEventListener('mouseleave', () => paint(st, reviewDraft[rid] ? reviewDraft[rid].stars : 0));
-      s.addEventListener('click', set);
-      s.addEventListener('touchend', (e) => { e.preventDefault(); set(); });
+      s.addEventListener('mouseleave', () => paint(st, reviewDraft[rid] ? reviewDraft[rid].stars : Number(st.dataset.current) || 0));
     });
   });
   // 移动端稳妥做法：textarea 输入实时同步到 draft，避免保存时 DOM 取值不可靠
@@ -607,10 +624,11 @@ function bindReviewUI() {
   $$('#overview-list .review-save').forEach((b) => b.addEventListener('click', async () => {
     const rid = b.dataset.rid;
     const d = reviewDraft[rid] || {};
-    // 移动端/微信浏览器下，draft 可能未同步星星状态，直接从 DOM 兜底读取
+    // 移动端/微信浏览器下，draft 可能未同步星星状态，从 DOM 多源兜底读取
     const starsEl = $(`.review-stars[data-rid="${rid}"]`);
-    const domStars = starsEl ? $$('span.on', starsEl).length : 0;
-    const rating = Math.max(d.stars || 0, domStars);
+    const domOnCount = starsEl ? $$('span.on', starsEl).length : 0;
+    const domCurrent = starsEl ? Number(starsEl.dataset.current) || 0 : 0;
+    const rating = Math.max(d.stars || 0, domOnCount, domCurrent);
     // 文字也兜底再读一次 DOM
     const ta = $(`.review-text[data-rid="${rid}"]`);
     if (ta && reviewDraft[rid]) reviewDraft[rid].text = ta.value;
