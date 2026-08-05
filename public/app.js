@@ -114,11 +114,6 @@ function renderAll() {
 }
 
 // ---------------- 菜名库 ----------------
-function starHtml(score) {
-  let s = '';
-  for (let i = 1; i <= 5; i++) s += `<span class="s ${i <= score ? 'on' : ''}">★</span>`;
-  return s;
-}
 let pendingDishImage = null;
 const CATS = ['荤菜', '蔬菜', '主食', '汤', '甜点', '其他'];
 const CAT_ICONS = { 荤菜: '🥩', 蔬菜: '🥬', 主食: '🍚', 汤: '🍲', 甜点: '🍰', 其他: '🍽️' };
@@ -384,13 +379,6 @@ function renderReservations() {
 }
 
 // ---------------- 工具 ----------------
-function paint(starsEl, n) {
-  $$('span', starsEl).forEach((s, i) => s.classList.toggle('on', i < n));
-  starsEl.dataset.current = String(n);
-  const label = starsEl.parentElement && starsEl.parentElement.querySelector('.star-label');
-  if (label) label.textContent = n > 0 ? `已选 ${n} 星` : '点击星星评分';
-}
-
 // ---------------- 概览（预约记录 + 饭后点评） ----------------
 const editingReviews = new Set();
 const reviewDraft = {};
@@ -484,7 +472,6 @@ function reservationCard(r) {
     // 保证 draft 始终存在且是最新数据，避免移动端状态丢失
     if (!reviewDraft[r.id]) {
       reviewDraft[r.id] = {
-        stars: (r.review && r.review.rating) || 0,
         text: (r.review && r.review.text) || '',
         image: (r.review && r.review.image) || null,
         changed: false,
@@ -493,7 +480,6 @@ function reservationCard(r) {
     }
     const d = reviewDraft[r.id];
     reviewHtml = `<div class="review-form">
-      <div class="field"><span>这顿饭打几分？</span><div class="stars review-stars" data-rid="${r.id}" data-current="${d.stars}">${starHtml(d.stars)}</div><span class="star-label" data-rid="${r.id}">${d.stars > 0 ? `已选 ${d.stars} 星` : '点击星星评分'}</span></div>
       <textarea class="review-text" data-rid="${r.id}" placeholder="写下这顿饭的感受…" maxlength="300">${esc(d.text)}</textarea>
       <div class="review-img-row">
         <button type="button" class="img-pick review-img-btn" data-rid="${r.id}">📷 图片</button>
@@ -507,9 +493,7 @@ function reservationCard(r) {
     </div>`;
   } else if (r.review) {
     const rv = r.review;
-    const rating = Number(rv.rating) || 0;
     reviewHtml = `<div class="review-done">
-      ${rating > 0 ? `<div class="stars" style="pointer-events:none">${starHtml(rating)}</div>` : '<div class="stars" style="pointer-events:none;color:var(--muted);font-size:14px;">未评分</div>'}
       ${rv.text ? `<div class="meta">${esc(rv.text)}</div>` : ''}
       ${rv.image ? `<img class="review-img" src="${esc(rv.image)}" alt="" />` : ''}
       <div class="meta">由 ${esc(rv.by || '神秘人')} 点评${rv.at ? ' · ' + fmtTime(rv.at) : ''}</div>
@@ -541,7 +525,6 @@ function bindReviewUI() {
     const rid = b.dataset.rid;
     const r = room.reservations.find((x) => x.id === rid);
     reviewDraft[rid] = {
-      stars: (r.review && r.review.rating) || 0,
       text: (r.review && r.review.text) || '',
       image: (r.review && r.review.image) || null,
       changed: false,
@@ -569,34 +552,6 @@ function bindReviewUI() {
       toast('已删除 🗑');
     } catch (e) { toast('删除失败'); }
   }));
-  $$('#overview-list .review-stars').forEach((st) => {
-    const rid = st.dataset.rid;
-    // 容器级事件委托，移动端更稳；同时保留 span 级 hover 体验
-    st.addEventListener('click', (e) => {
-      const span = e.target.closest('span.s');
-      if (!span) return;
-      const idx = $$('span', st).indexOf(span);
-      if (idx < 0) return;
-      if (!reviewDraft[rid]) reviewDraft[rid] = { stars: 0, text: '', image: null, changed: false, removed: false };
-      reviewDraft[rid].stars = idx + 1;
-      paint(st, idx + 1);
-    });
-    st.addEventListener('touchend', (e) => {
-      const span = e.target.closest('span.s');
-      if (!span) return;
-      e.preventDefault();
-      const idx = $$('span', st).indexOf(span);
-      if (idx < 0) return;
-      if (!reviewDraft[rid]) reviewDraft[rid] = { stars: 0, text: '', image: null, changed: false, removed: false };
-      reviewDraft[rid].stars = idx + 1;
-      paint(st, idx + 1);
-    });
-    const spans = $$('span', st);
-    spans.forEach((s, i) => {
-      s.addEventListener('mouseenter', () => paint(st, i + 1));
-      s.addEventListener('mouseleave', () => paint(st, reviewDraft[rid] ? reviewDraft[rid].stars : Number(st.dataset.current) || 0));
-    });
-  });
   // 移动端稳妥做法：textarea 输入实时同步到 draft，避免保存时 DOM 取值不可靠
   $$('#overview-list .review-text').forEach((ta) => ta.addEventListener('input', () => {
     const rid = ta.dataset.rid;
@@ -624,15 +579,10 @@ function bindReviewUI() {
   $$('#overview-list .review-save').forEach((b) => b.addEventListener('click', async () => {
     const rid = b.dataset.rid;
     const d = reviewDraft[rid] || {};
-    // 移动端/微信浏览器下，draft 可能未同步星星状态，从 DOM 多源兜底读取
-    const starsEl = $(`.review-stars[data-rid="${rid}"]`);
-    const domOnCount = starsEl ? $$('span.on', starsEl).length : 0;
-    const domCurrent = starsEl ? Number(starsEl.dataset.current) || 0 : 0;
-    const rating = Math.max(d.stars || 0, domOnCount, domCurrent);
-    // 文字也兜底再读一次 DOM
+    // 文字兜底再读一次 DOM
     const ta = $(`.review-text[data-rid="${rid}"]`);
     if (ta && reviewDraft[rid]) reviewDraft[rid].text = ta.value;
-    const body = { by: nick, text: (d.text || '').trim(), rating };
+    const body = { by: nick, text: (d.text || '').trim() };
     if (d.changed) body.image = d.removed ? '' : (d.image || '');
     try {
       const updated = await api(`/api/rooms/${roomCode}/reservations/${rid}/review`, 'POST', body);

@@ -317,10 +317,6 @@ const server = http.createServer(async (req, res) => {
         const b = await readBody(req);
         const review = { by: sanitize(b.by, 30), at: new Date().toISOString() };
         if (b.text != null) review.text = sanitize(b.text, 300);
-        if (b.rating) {
-          const sc = Number(b.rating);
-          if (sc >= 1 && sc <= 5) review.rating = sc;
-        }
         if (b.image !== undefined) {
           if (b.image === '') {
             removeImageFile(r.review && r.review.image);

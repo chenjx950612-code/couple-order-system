@@ -8,7 +8,6 @@
   --muted: #9a8a8c;
   --line: #ffe0e3;
   --green: #2ecc71;
-  --star: #ffc107;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -113,10 +112,6 @@ textarea { resize: vertical; min-height: 64px; }
 .img-btn { border: none; background: rgba(255,167,81,.16); color: #d98324; width: 30px; height: 30px; border-radius: 10px; cursor: pointer; font-size: 14px; }
 .img-remove { border: none; background: rgba(255,77,109,.1); color: var(--pink-deep); width: 30px; height: 30px; border-radius: 10px; cursor: pointer; font-size: 13px; }
 
-.stars { font-size: 20px; letter-spacing: 2px; cursor: pointer; user-select: none; }
-.stars .s { color: #e0d5d6; padding: 4px; }
-.stars .s.on { color: var(--star); }
-.star-label { font-size: 13px; color: var(--muted); margin-left: 8px; }
 .avg { font-size: 13px; color: var(--muted); margin-left: 6px; }
 .rate-box { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .rate-note { width: 100%; margin-top: 8px; }
@@ -212,7 +207,6 @@ textarea { resize: vertical; min-height: 64px; }
 .g-info { padding: 10px 12px 12px; }
 .g-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .g-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
-.g-rating { font-size: 11px; color: var(--star); margin-top: 4px; }
 
 .g-check {
   position: absolute; top: 8px; right: 8px;
