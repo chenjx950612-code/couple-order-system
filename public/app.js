@@ -142,7 +142,27 @@ function pickImage() {
   return new Promise((res) => {
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'image/*';
-    inp.onchange = () => res(inp.files[0] || null);
+    // 挂到 DOM 上：iOS Safari 等移动浏览器要求 input 在文档树中才能稳定触发文件选择
+    inp.style.cssText = 'position:fixed;opacity:0;pointer-events:none;z-index:-1;';
+    document.body.appendChild(inp);
+    let settled = false;
+    const cleanup = () => {
+      if (settled) return;
+      settled = true;
+      setTimeout(() => { try { inp.remove(); } catch (e) {} }, 300);
+      res(null);
+    };
+    inp.addEventListener('change', () => {
+      if (settled) return;
+      settled = true;
+      const file = inp.files[0] || null;
+      // 延迟移除，避免 iOS 在回调完成前回收 input 导致文件对象失效
+      setTimeout(() => { try { inp.remove(); } catch (e) {} }, 1000);
+      res(file);
+    });
+    // 用户取消选择或失焦后兜底返回 null
+    inp.addEventListener('focusout', () => setTimeout(cleanup, 250));
+    setTimeout(cleanup, 60000); // 1 分钟未操作自动清理
     inp.click();
   });
 }
@@ -198,11 +218,14 @@ function renderDishes() {
   $$('#dish-list .img-btn').forEach((b) => b.addEventListener('click', async () => {
     const f = await pickImage();
     if (!f) return;
+    const original = b.textContent;
+    b.disabled = true; b.textContent = '⏳';
     try {
       const dataUrl = await fileToBase64(f);
       await api(`/api/rooms/${roomCode}/dishes/${b.dataset.img}/image`, 'POST', { image: dataUrl });
       await reload(); toast('图片已更新 📷');
-    } catch (e) { toast('图片上传失败'); }
+    } catch (e) { toast('图片上传失败：' + (e.message || '未知错误')); }
+    finally { b.disabled = false; b.textContent = original; }
   }));
   $$('#dish-list .img-remove').forEach((b) => b.addEventListener('click', async () => {
     if (!confirm('移除这道菜的图片？')) return;

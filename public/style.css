@@ -233,8 +233,8 @@ textarea { resize: vertical; min-height: 64px; }
   display: flex; gap: 6px;
 }
 .g-manage .img-btn, .g-manage .img-remove, .g-manage .del {
-  width: 28px; height: 28px; border-radius: 8px; border: none;
-  font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 8px; border: none;
+  font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .g-manage .img-btn { background: rgba(255,255,255,.85); color: #d98324; }
 .g-manage .img-remove { background: rgba(255,255,255,.85); color: var(--pink-deep); }
