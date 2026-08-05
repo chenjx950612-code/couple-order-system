@@ -508,31 +508,31 @@ function reservationCard(r) {
       ${rv.rating ? `<div class="stars" style="pointer-events:none">${starHtml(rv.rating)}</div>` : ''}
       ${rv.text ? `<div class="meta">${esc(rv.text)}</div>` : ''}
       ${rv.image ? `<img class="review-img" src="${esc(rv.image)}" alt="" />` : ''}
-      <div class="meta">由 ${esc(rv.by || '神秘人')} 点评${rv.at ? ' · ' + fmtTime(rv.at) : ''} · <button type="button" class="text-btn review-locate" data-rid="${r.id}" data-date="${esc(r.date || '')}">🔍 查看这条</button></div>
-      <button type="button" class="text-btn review-edit" data-rid="${r.id}">✏️ 编辑点评</button>
+      <div class="meta">由 ${esc(rv.by || '神秘人')} 点评${rv.at ? ' · ' + fmtTime(rv.at) : ''}</div>
     </div>`;
+  }
+  // 卡片底部分两行：第一行 primary 按钮（写点评/编辑点评），第二行删除
+  let primaryBtn = '';
+  if (editingReviews.has(r.id)) {
+    // 编辑态按钮留在 review-form 内部，此处不显示
+  } else if (r.review) {
+    primaryBtn = `<button type="button" class="text-btn review-edit" data-rid="${r.id}">✏️ 编辑点评</button>`;
   } else {
-    reviewHtml = `<button type="button" class="text-btn review-add" data-rid="${r.id}">✍️ 写饭后点评</button>`;
+    primaryBtn = `<button type="button" class="text-btn review-add" data-rid="${r.id}">✍️ 写饭后点评</button>`;
   }
   return `<div class="card resv-card ${r.id === overviewHighlightRid ? 'highlight' : ''}" data-rid="${r.id}">
     <div class="row1"><div class="title">${esc(r.title || (mealStr || '点菜'))}</div></div>
     <div class="meta cal-meta">${calendarIcon(r.date)}<span>${esc(dateStr)}${mealStr ? ' · ' + esc(mealStr) : ''} · 由 ${esc(r.by || '神秘人')}</span></div>
     <div style="margin-top:8px">${dishes}</div>
     ${r.note ? `<div class="meta" style="margin-top:8px">💬 ${esc(r.note)}</div>` : ''}
-    <div class="review-area">${reviewHtml}</div>
+    <div class="review-area">${reviewHtml || ''}</div>
     <div class="card-actions">
-      <button type="button" class="text-btn resv-del" data-rid="${esc(r.id)}">🗑 删除这顿</button>
+      ${primaryBtn ? `<div class="card-primary">${primaryBtn}</div>` : ''}
+      <div class="card-del"><button type="button" class="text-btn resv-del" data-rid="${esc(r.id)}">🗑 删除这顿</button></div>
     </div>
   </div>`;
 }
 function bindReviewUI() {
-  $$('#overview-list .review-locate').forEach((b) => b.addEventListener('click', () => {
-    const rid = b.dataset.rid;
-    const date = b.dataset.date || '';
-    overviewDate = date;
-    overviewHighlightRid = rid;
-    renderOverview();
-  }));
   $$('#overview-list .review-add, #overview-list .review-edit').forEach((b) => b.addEventListener('click', () => {
     const rid = b.dataset.rid;
     const r = room.reservations.find((x) => x.id === rid);
